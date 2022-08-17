@@ -7,6 +7,7 @@ var $modalClose = $('[data-modal-close]')
 var $modalOverlay = $('[data-modal-overlay]')
 var $copyInput = $('[data-copy-input]')
 var $modalCopyUrlBtn = $('[data-modal-copy-url]')
+var $modalShareUrlBtn = $('[data-modal-share-url]')
 
 // Buttons
 var $flipOrientationBtn = $('[data-btn-flip-orientation]')
@@ -228,11 +229,31 @@ function initClickListeners() {
     }, 2000)
     copyToClipboard()  
   })
+  $modalShareUrlBtn.on('click', () => {
+    shareUrl().then(() => {
+      setTimeout(() => {
+        closeCopyModal()
+      }, 2000)
+    }).catch(console.error);
+  })
 }
 
 function copyToClipboard() {
   $status.html("Copied - Paste to opponent!")
   navigator.clipboard.writeText(window.location)
+}
+
+async function shareUrl() {
+  if (!navigator.share) {
+    throw new Error("Web Share not available in this browser :(");
+  }
+  navigator.share({
+    title: 'chessmsgs – your turn', // TODO add the code for last move in the title?
+    url: window.location
+  }).then(() => {
+    console.log(`Shared URL ${window.location}`);
+    $status.html("Shared to opponent!")
+  });
 }
 
 if (startFen) {
@@ -273,3 +294,10 @@ const enableBodyScroll = bodyScrollLock.enableBodyScroll
 const targetElement = document.querySelector('#dummy')
 enableBodyScroll(targetElement)
 
+// Web Share capability
+if (navigator.share) {
+  $modalShareUrlBtn.css({'visibility': 'visible'})
+  console.debug("Activated Web Share")
+}else{
+  console.debug("Web Share not available")
+}
